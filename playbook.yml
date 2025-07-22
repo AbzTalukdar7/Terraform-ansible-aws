@@ -1,0 +1,47 @@
+- name: Setup EC2
+  hosts: web
+  become: yes
+  tasks:
+    - name: Update apt
+      apt:
+        update_cache: yes
+
+    - name: Create file /tmp/test_file.txt with content "It works"
+      copy:
+        dest: /tmp/test_file.txt
+        content: "It works!\n"
+
+---
+- name: Install and start Apache web server
+  hosts: web
+  become: yes
+  tasks:
+    - name: Install apache2
+      apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+    - name: Ensure apache2 is running and enabled
+      systemd:
+        name: apache2
+        state: started
+        enabled: yes
+
+    - name: Replace the default index.html with custom content
+      copy:
+        dest: /var/www/html/index.html
+        content: |
+          <html>
+          <head><title>My Custom Page</title></head>
+          <body>
+            <h1>It works!</h1>
+            <p>Welcome to my EC2 hosted Apache server.</p>
+          </body>
+          </html>
+    - name: Allow HTTP through the firewall if ufw is active
+      ufw:
+        rule: allow
+        name: "Apache"
+      when: ansible_facts['services']['ufw.service'] is defined and ansible_facts['services']['ufw.service'].state == "running"
+

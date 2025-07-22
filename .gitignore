@@ -1,0 +1,11 @@
+# Ignore private SSH keys
+*.pem
+*.key
+
+# Terraform state files (optional but recommended)
+*.tfstate
+*.tfstate.backup
+
+# Ansible facts cache or other local files if any
+*.retry
+
