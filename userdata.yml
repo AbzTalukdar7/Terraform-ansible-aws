@@ -6,6 +6,8 @@ packages:
   - git
 
 runcmd:
+  - mkdir /tmp/build
+  - cd /tmp/build
   - git clone https://github.com/AbzTalukdar7/Terraform-ansible-aws.git
-  - cd Terraform-ansible-aws
-  - ansible-playbook playbook.yml -i hosts.ini
+  - cd /tmp/build/Terraform-ansible-aws
+  - ansible-playbook playbook.yml -i -C localhost
