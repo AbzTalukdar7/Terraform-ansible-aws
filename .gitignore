@@ -9,3 +9,9 @@
 # Ansible facts cache or other local files if any
 *.retry
 
+# Ignore Terraform working directory
+.terraform/
+
+# Ignore IDE/editor config files
+.vscode/
+*.log
