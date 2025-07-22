@@ -25,6 +25,35 @@ provider "aws" {
   region = "eu-west-2"
 }
 
+# CREATE SECURITY GROUP THAT IS APPLIED TO THE INSTANCE
+#
+resource "aws_security_group" "ssh_proj" {
+  name = "ssh_proj"
+  description = "project secruity group"
+
+  # Inbound HTTP from anywhere
+  ingress {
+    from_port = "${var.server_port}"
+    to_port = "${var.server_port}"
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Inbound ssh from anywhere
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # Outbound to anywhere
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
 resource "random_id" "suffix" {
   byte_length = 4
 }
@@ -64,8 +93,9 @@ data "aws_ami" "ubuntu" {
 resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.micro"
+  security_groups = ["ssh_alerta"]
   key_name      = aws_key_pair.generated_key.key_name
-  user_data = "${data.template_file.userdata.rendered}"
+  user_data = data.template_file.userdata.rendered
   tags = {
     Name = "TerraformAnsibleEC2"
   }
