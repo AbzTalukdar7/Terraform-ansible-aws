@@ -24,7 +24,6 @@ This project automates the provisioning of an EC2 instance on AWS using Terrafor
 ## Prerequisites
 
 - AWS account with credentials set up (e.g. in `~/.aws/credentials`)
-- SSH key pair for access to the EC2 instance
 - Terraform installed
 - Ansible installed## How to Run This Project
 
@@ -35,31 +34,43 @@ git clone git@github.com:AbzTalukdar7/Terraform-ansible-aws.git
 cd Terraform-ansible-aws
 ```
 
-terraform init
-terraform apply
-
 2. **Provision the EC2 instance using Terraform**
 
 ```bash
 terraform init
 terraform apply
 ```
+3. **Save the generated key to your ~/.ssh/ directory**
+After Terraform finishes, save the generated key to your /.ssh/ directory.
 
-3. **Update the Ansible inventory with the EC2 public IP**
+```bash
+mv my_terraform_key.pem ~/.ssh/my_terraform_key
+chmod 600 my_terraform_key
+```
+4. **Update the Ansible hosts.ini with the EC2 public IP**
 
-After Terraform finishes, copy the outputted public IP into your inventory file:
+Copy the outputted public IP into your hosts.ini file:
 
 ```bash
 [web]
 your.ec2.ip.here ansible_user=ubuntu ansible_ssh_private_key_file=./your-key.pem
 ```
 
-4. **Run the Ansible playbook**
+5. **Run the Ansible playbook**
 
 ```bash
-ansible-playbook playbook.yml -i inventory
+ansible-playbook playbook.yml -i hosts.ini
 ```
+6. **allow inbound traffic on port 80 (HTTP)**
 
+Make sure your EC2 security group allows inbound traffic on port 80 (HTTP):
+
+- Go to your EC2 instance
+- go down to security and click security group
+- head to inbound rules
+- add a rule with type http and block 0.0.0.0/0
+- save rule!
+  
 5. **Visit the Web Page**
 
 Open a browser and go to: http://your.ec2.ip.here
@@ -72,8 +83,6 @@ You should see a message like: It works!
 
 ```md
 ## Notes
-
-- Make sure your EC2 security group allows inbound traffic on port 80 (HTTP)
 - Don’t forget to `terraform destroy` when you’re done to avoid charges
 
 
