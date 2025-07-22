@@ -27,31 +27,28 @@ provider "aws" {
 
 # CREATE SECURITY GROUP THAT IS APPLIED TO THE INSTANCE
 #
-resource "aws_security_group" "ssh_proj" {
-  name = "ssh_proj"
-  description = "project secruity group"
+resource "aws_security_group" "allow_ssh" {
+  name        = "allow_ssh"
+  description = "Allow SSH access"
+  vpc_id      = data.aws_vpc.default.id
 
-  # Inbound HTTP from anywhere
   ingress {
-    from_port = 80
-    to_port = 80
-    protocol = "tcp"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  # Inbound ssh from anywhere
-  ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-  # Outbound to anywhere
+
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
+}
+
+data "aws_vpc" "default" {
+  default = true
 }
 
 resource "random_id" "suffix" {
@@ -94,6 +91,7 @@ resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.micro"
   security_groups = ["ssh_alerta"]
+  vpc_security_group_ids = [aws_security_group.allow_ssh.id]
   key_name      = aws_key_pair.generated_key.key_name
   user_data = data.template_file.userdata.rendered
   tags = {
