@@ -1,5 +1,5 @@
 - name: Setup EC2
-  hosts: web
+  hosts: localhost
   become: yes
   tasks:
     - name: Update apt
@@ -12,7 +12,7 @@
         content: "It works!\n"
 
 - name: Install and start Apache web server
-  hosts: web
+  hosts: localhost
   become: yes
   tasks:
     - name: Install apache2
