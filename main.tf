@@ -17,6 +17,10 @@ terraform {
   required_version = ">= 1.2"
 }
 
+data "template_file" "userdata" {
+  template = "${file("${path.module}/userdata.yml")}"
+}
+
 provider "aws" {
   region = "eu-west-2"
 }
@@ -61,9 +65,16 @@ resource "aws_instance" "web" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.generated_key.key_name
-
+  user_data = "${data.template_file.userdata.rendered}"
   tags = {
     Name = "TerraformAnsibleEC2"
+  }
+  connection {
+    type = "ssh"
+    user = "ubuntu"
+    private_key = "${file("${aws_key_pair.generated_key}")}"
+    timeout = "2m"
+    agent = false
   }
 }
 

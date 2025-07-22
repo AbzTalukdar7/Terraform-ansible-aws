@@ -1,0 +1,10 @@
+#cloud config
+#
+
+apt_upgrade: false
+packages:
+  - ansible
+
+runcmd:
+  - git clone https://github.com/AbzTalukdar7/Terraform-ansible-aws.git
+  - ansible-playbook playbook.yml -i -C localhost
