@@ -72,7 +72,7 @@ resource "aws_instance" "web" {
   connection {
     type = "ssh"
     user = "ubuntu"
-    private_key = "${file("${aws_key_pair.generated_key}")}"
+    private_key = "${file("${aws_key_pair.generated_key.key_name}")}"
     timeout = "2m"
     agent = false
   }
