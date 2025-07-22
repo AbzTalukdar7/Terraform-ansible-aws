@@ -35,6 +35,12 @@ resource "aws_key_pair" "generated_key" {
   public_key = tls_private_key.ssh_key.public_key_openssh
 }
 
+resource "local_sensitive_file" "private_key_pem" {
+  content         = tls_private_key.ssh_key.private_key_pem
+  filename        = "${path.module}/my_terraform_key"
+  file_permission = "0600"
+}
+
 data "aws_ami" "ubuntu" {
   most_recent = true
 
