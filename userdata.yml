@@ -1,5 +1,4 @@
 #cloud-config
-# -*- YAML -*-
 
 apt_upgrade: false
 packages:
