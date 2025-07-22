@@ -8,4 +8,4 @@ packages:
 runcmd:
   - git clone https://github.com/AbzTalukdar7/Terraform-ansible-aws.git
   - cd Terraform-ansible-aws
-  - ansible-playbook playbook.yml -i hosts.ini -C localhost
+  - ansible-playbook playbook.yml -i hosts.ini
