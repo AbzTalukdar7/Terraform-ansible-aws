@@ -50,29 +50,32 @@
       copy:
         dest: /opt/tomcat/tomcat.service
         content: |
+          - name: Create systemd service file for Tomcat
+      copy:
+        dest: /etc/systemd/system/tomcat.service
+        content: |
           [Unit]
           Description=Apache Tomcat Web Application Container
           After=network.target
-          
+
           [Service]
           Type=forking
-          
+
           Environment=JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-          Environment=CATALINA_PID=/opt/tomcat-9.0.107/temp/tomcat.pid
-          Environment=CATALINA_HOME=/opt/tomcat-9.0.107
-          Environment=CATALINA_BASE=/opt/tomcat-9.0.107
+          Environment=CATALINA_PID=/opt/tomcat/temp/tomcat.pid
+          Environment=CATALINA_HOME=/opt/tomcat
+          Environment=CATALINA_BASE=/opt/tomcat
           Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
           Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
-          ExecStart=/opt/apache-tomcat-9.0.107/bin/startup.sh
-          ExecStop=/opt/apache-tomcat-9.0.107/bin/shutdown.sh
-          
+          ExecStart=/opt/tomcat/bin/startup.sh
+          ExecStop=/opt/tomcat/bin/shutdown.sh
+
           User=tomcat
           Group=tomcat
-
           UMask=0007
           RestartSec=10
           Restart=always
-          
+
           [Install]
           WantedBy=multi-user.target
         
@@ -86,21 +89,15 @@
         group: tomcat
         shell: /bin/false
         create_home: no
-        
+
     - name: Changing ownership
       file:
-        path: /opt/tomcat
+        path: /opt/tomcat/apache-tomcat-9.0.107
         owner: tomcat
         group: tomcat
         mode: "u+rwx,g+rx,o=rx"
         recurse: yes
         state: directory
-        
-    - name: Copying Tomcat service file from local to remote
-      copy:
-         src: /opt/tomcat/tomcat.service
-         dest: /etc/systemd/system/
-         mode: 0755
          
     - name: Starting and enabling Tomcat service
       systemd:
