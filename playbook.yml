@@ -58,12 +58,6 @@
         mode: "u+rwx,g+rx,o=rx"
         recurse: yes
         state: directory
-        
-    - name: Copying Tomcat service file from local to remote
-      copy:
-         src: files/tomcat.service
-         dest: /etc/systemd/system/
-         mode: 0755
     
     - name: Starting and enabling Tomcat service
       systemd:
