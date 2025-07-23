@@ -11,29 +11,65 @@
         dest: /tmp/test_file.txt
         content: "It works!\n"
 
-- name: Install Tomcat
-  hosts: tomcat_servers
-  become: yes
+- name: Deploy Apache Tomcat on Ubuntu for your java web applications
+  hosts: medium
+  gather_facts: yes
+  become: true
   
-  tasks: 
-    - name: Install Java
-      yum: 
-        name: java-1.8.0-openjdk
+  tasks:
+    - name: Installing OpenJDK 8 to the host(s)
+      apt:
+        name: openjdk-8-jdk
+        update_cache: yes
         state: present
-    
-    - name: Download Tomcat
-      get_url:
-        url: https://downloads.apache.org/tomcat/tomcat-9/v9.0.34/bin/apache-tomcat-9.0.34.tar.gz
-        dest: /opt/
-
-    - name: Extract Tomcat
+        
+    - name: Deleting content & directory
+      file:
+        state: absent
+        path: /opt/Tomcat
+        
+    - name: Creating /opt/tomcat directory
+      file:
+        path: /opt/tomcat
+        state: directory
+        mode: 0755
+        
+    - name: Downloading & unarchiving
       unarchive:
-        src: /opt/apache-tomcat-9.0.34.tar.gz
-        dest: /opt/
+        src: "{{ tomcat_archive_url }}"
+        dest: /opt/tomcat
         remote_src: yes
-
-    - name: Start Tomcat Service
-      service:
+        extra_opts: [--strip-components=1]
+        
+    - name: Adding tomcat group
+      group:
         name: tomcat
-        state: started
-        enabled: yes
+        
+    - name: Adding tomcat user
+      user:
+        name: tomcat
+        group: tomcat
+        home: /user/share/tomcat
+        createhome: no
+    
+    - name: Changing ownership
+      file:
+        path: /opt/tomcat
+        owner: tomcat
+        group: tomcat
+        mode: "u+rwx,g+rx,o=rx"
+        recurse: yes
+        state: directory
+        
+    - name: Copying Tomcat service file from local to remote
+      copy:
+         src: files/tomcat.service
+         dest: /etc/systemd/system/
+         mode: 0755
+    
+    - name: Starting and enabling Tomcat service
+      systemd:
+        name: tomcat
+        state: restarted
+        enabled: true
+        daemon_reload: true
