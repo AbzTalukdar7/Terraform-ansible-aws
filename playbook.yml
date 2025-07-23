@@ -22,15 +22,15 @@
         state: directory
         mode: 0755
         
-    - name: Install Java (if using Amazon Linux or RHEL)
-      yum:
-        name: java-1.8.0-openjdk
+    - name: Install Java (Tomcat dependency)
+      apt:
+        name: default-jdk
         state: present
-      when: ansible_os_family in ["RedHat", "Amazon"]
+      when: ansible_os_family == "Debian"
 
     - name: Download Tomcat
       get_url:
-        url: https://downloads.apache.org/tomcat/tomcat-9/v9.0.85/bin/apache-tomcat-9.0.85.tar.gz
+        url: https://downloads.apache.org/tomcat/tomcat-9/v9.0.87/bin/apache-tomcat-9.0.87.tar.gz
         dest: /tmp/apache-tomcat.tar.gz
 
     - name: Extract Tomcat
