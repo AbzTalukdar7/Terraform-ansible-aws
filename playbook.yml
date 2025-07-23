@@ -59,9 +59,8 @@
         recurse: yes
         state: directory
     
-    - name: Starting and enabling Tomcat service
-      systemd:
+    - name: Start Tomcat Service
+      service:
         name: tomcat
-        state: restarted
-        enabled: true
-        daemon_reload: true
+        state: started
+        enabled: yes
