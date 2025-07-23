@@ -12,21 +12,27 @@
         content: "It works!\n"
 
 - name: Deploy Apache Tomcat on Ubuntu for your java web applications
-  hosts: localhost
+  hosts: medium
+  gather_facts: yes
   become: true
   
-  tasks:     
+  tasks: 
+    - name: Installing OpenJDK 8 to the host(s)
+      apt:
+        name: openjdk-8-jdk
+        update_cache: yes
+        state: present
+
+    - name: Deleting content & directory
+      file:
+        state: absent
+        path: /opt/tomcat
+
     - name: Creating /opt/tomcat directory
       file:
         path: /opt/tomcat
         state: directory
         mode: 0755
-        
-    - name: Install Java (Tomcat dependency)
-      apt:
-        name: default-jdk
-        state: present
-      when: ansible_os_family == "Debian"
 
     - name: Download Tomcat
       get_url:
@@ -38,6 +44,32 @@
         src: /tmp/apache-tomcat.tar.gz
         dest: /opt/
         remote_src: yes
+
+    - name: Create systemd service file for Tomcat
+      copy:
+        dest: /opt/tomcat/files/tomcat.service
+        content: |
+          [Unit]
+          Description=Apache Tomcat Web Application Container
+          After=network.target
+
+          [Service]
+          Type=forking
+
+          User=tomcat
+          Group=tomcat
+
+          Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
+          Environment="CATALINA_PID=/opt/tomcat/temp/tomcat.pid"
+          Environment="CATALINA_HOME=/opt/tomcat"
+          Environment="CATALINA_BASE=/opt/tomcat"
+          Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+
+          ExecStart=/opt/tomcat/bin/startup.sh
+          ExecStop=/opt/tomcat/bin/shutdown.sh
+
+          [Install]
+          WantedBy=multi-user.target
         
     - name: Adding tomcat group
       group:
@@ -59,42 +91,15 @@
         recurse: yes
         state: directory
         
-    - name: Create systemd service file for Tomcat
+    - name: Copying Tomcat service file from local to remote
       copy:
-        dest: /etc/systemd/system/{{ tomcat_service }}.service
-        content: |
-          [Unit]
-          Description=Apache Tomcat Web Application Container
-          After=network.target
-
-          [Service]
-          Type=forking
-
-          User={{ tomcat_user }}
-          Group={{ tomcat_group }}
-
-          Environment="JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64"
-          Environment="CATALINA_PID={{ install_dir }}/temp/tomcat.pid"
-          Environment="CATALINA_HOME={{ install_dir }}"
-          Environment="CATALINA_BASE={{ install_dir }}"
-          Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
-
-          ExecStart={{ install_dir }}/bin/startup.sh
-          ExecStop={{ install_dir }}/bin/shutdown.sh
-
-          [Install]
-          WantedBy=multi-user.target
-
-    - name: Reload systemd daemon
+         src: /opt/tomcat/files/tomcat.service
+         dest: /etc/systemd/system/
+         mode: 0755
+         
+    - name: Starting and enabling Tomcat service
       systemd:
-        daemon_reload: yes
-
-    - name: Enable Tomcat service
-      systemd:
-        name: "{{ tomcat_service }}"
-        enabled: yes
-
-    - name: Start Tomcat service
-      systemd:
-        name: "{{ tomcat_service }}"
-        state: started
+        name: tomcat
+        state: restarted
+        enabled: true
+        daemon_reload: true
