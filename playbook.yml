@@ -47,7 +47,7 @@
 
     - name: Create systemd service file for Tomcat
       copy:
-        dest: /opt/tomcat/files/tomcat.service
+        dest: /opt/tomcat/tomcat.service
         content: |
           [Unit]
           Description=Apache Tomcat Web Application Container
@@ -93,7 +93,7 @@
         
     - name: Copying Tomcat service file from local to remote
       copy:
-         src: /opt/tomcat/files/tomcat.service
+         src: /opt/tomcat/tomcat.service
          dest: /etc/systemd/system/
          mode: 0755
          
