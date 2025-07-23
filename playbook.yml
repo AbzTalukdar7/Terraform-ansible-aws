@@ -1,3 +1,4 @@
+---
 - name: Setup EC2
   hosts: localhost
   become: yes
@@ -26,11 +27,11 @@
     - name: Deleting content & directory
       file:
         state: absent
-        path: /tmp/tomcat
+        path: /opt/tomcat
 
-    - name: Creating /tmp/tomcat directory
+    - name: Creating /opt/tomcat directory
       file:
-        path: /tmp/tomcat
+        path: /opt/tomcat
         state: directory
         mode: 0755
 
@@ -42,12 +43,12 @@
     - name: Extract Tomcat
       unarchive:
         src: /tmp/apache-tomcat.tar.gz
-        dest: /tmp/
+        dest: /opt/tomcat
         remote_src: yes
 
     - name: Create systemd service file for Tomcat
       copy:
-        dest: /tmp/tomcat/tomcat.service
+        dest: /opt/tomcat/tomcat.service
         content: |
           [Unit]
           Description=Apache Tomcat Web Application Container
@@ -57,17 +58,17 @@
           Type=forking
           
           Environment=JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
-          Environment=CATALINA_PID=/tmp/tomcat/temp/tomcat.pid
-          Environment=CATALINA_HOME=/tmp/tomcat
-          Environment=CATALINA_BASE=/tmp/tomcat
+          Environment=CATALINA_PID=/opt/tomcat-9.0.107/temp/tomcat.pid
+          Environment=CATALINA_HOME=/opt/tomcat-9.0.107
+          Environment=CATALINA_BASE=/opt/tomcat-9.0.107
           Environment='CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC'
           Environment='JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom'
-          
-          ExecStart=/tmp/apache-tomcat-9.0.107/bin/startup.sh
-          ExecStop=/tmp/apache-tomcat-9.0.107/bin/shutdown.sh
+          ExecStart=/opt/apache-tomcat-9.0.107/bin/startup.sh
+          ExecStop=/opt/apache-tomcat-9.0.107/bin/shutdown.sh
           
           User=tomcat
           Group=tomcat
+
           UMask=0007
           RestartSec=10
           Restart=always
@@ -83,12 +84,12 @@
       user:
         name: tomcat
         group: tomcat
-        home: /user/share/tomcat
-        createhome: no
+        shell: /bin/false
+        create_home: no
         
     - name: Changing ownership
       file:
-        path: /tmp/tomcat
+        path: /opt/tomcat
         owner: tomcat
         group: tomcat
         mode: "u+rwx,g+rx,o=rx"
@@ -97,7 +98,7 @@
         
     - name: Copying Tomcat service file from local to remote
       copy:
-         src: /tmp/tomcat/tomcat.service
+         src: /opt/tomcat/tomcat.service
          dest: /etc/systemd/system/
          mode: 0755
          
