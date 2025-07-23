@@ -12,7 +12,7 @@
         content: "It works!\n"
 
 - name: Deploy Apache Tomcat on Ubuntu for your java web applications
-  hosts: medium
+  hosts: localhost
   gather_facts: yes
   become: true
   
