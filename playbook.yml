@@ -12,34 +12,32 @@
         content: "It works!\n"
 
 - name: Deploy Apache Tomcat on Ubuntu for your java web applications
-  hosts: medium
-  gather_facts: yes
+  hosts: localhost
   become: true
   
-  tasks:
-    - name: Installing OpenJDK 8 to the host(s)
-      apt:
-        name: openjdk-8-jdk
-        update_cache: yes
-        state: present
-        
-    - name: Deleting content & directory
-      file:
-        state: absent
-        path: /opt/Tomcat
-        
+  tasks:     
     - name: Creating /opt/tomcat directory
       file:
         path: /opt/tomcat
         state: directory
         mode: 0755
         
-    - name: Downloading & unarchiving
+    - name: Install Java (if using Amazon Linux or RHEL)
+      yum:
+        name: java-1.8.0-openjdk
+        state: present
+      when: ansible_os_family in ["RedHat", "Amazon"]
+
+    - name: Download Tomcat
+      get_url:
+        url: https://downloads.apache.org/tomcat/tomcat-9/v9.0.85/bin/apache-tomcat-9.0.85.tar.gz
+        dest: /tmp/apache-tomcat.tar.gz
+
+    - name: Extract Tomcat
       unarchive:
-        src: "{{ tomcat_archive_url }}"
-        dest: /opt/tomcat
+        src: /tmp/apache-tomcat.tar.gz
+        dest: /opt/
         remote_src: yes
-        extra_opts: [--strip-components=1]
         
     - name: Adding tomcat group
       group:
