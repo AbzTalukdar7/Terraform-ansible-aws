@@ -9,5 +9,5 @@ runcmd:
   - mkdir /tmp/build
   - cd /tmp/build
   - git clone https://github.com/AbzTalukdar7/Terraform-ansible-aws.git
-  - cd /tmp/build/Terraform-ansible-aws
+  - cd /tmp/build/Terraform-ansible-aws/ansible
   - ansible-playbook playbook.yml -i localhost, --connection=local 
