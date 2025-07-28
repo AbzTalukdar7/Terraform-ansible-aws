@@ -18,7 +18,7 @@ terraform {
 }
 
 data "template_file" "userdata" {
-  template = file("${path.module}/userdata.yml")
+  template = file("${path.module}/../ansible/userdata.yml")
 }
 
 provider "aws" {
