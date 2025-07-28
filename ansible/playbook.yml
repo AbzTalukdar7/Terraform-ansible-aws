@@ -112,7 +112,7 @@
   tasks:
     - name: copy the war file to tomcat
       copy:
-        src: /tmp/build/Terraform-ansible-aws/target/visitor-counter-1.0-SNAPSHOT.war
+        src: /tmp/build/Terraform-ansible-aws/visitor_counter_app/target/visitor-counter-1.0-SNAPSHOT.war
         dest: /opt/tomcat/apache-tomcat-9.0.107/webapps/visitor-counter.war
         owner: tomcat
         group: tomcat
