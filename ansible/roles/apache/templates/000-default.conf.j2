@@ -1,11 +1,12 @@
 <VirtualHost *:80>
+    ServerName localhost
+    ProxyPreserveHost On
+    ProxyPass "/" "http://localhost:{{ proxy_port }}/{{ app_name }}/"
+    ProxyPassReverse "/" "http://localhost:{{ proxy_port }}/{{ app_name }}/"
+
     ServerAdmin webmaster@localhost
     DocumentRoot /var/www/html
 
-    ProxyPreserveHost On
-    ProxyPass / http://localhost:8080/visitor-counter/
-    ProxyPassReverse / http://localhost:8080/visitor-counter/
-    
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>

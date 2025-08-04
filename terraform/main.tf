@@ -18,11 +18,36 @@ terraform {
 }
 
 data "template_file" "userdata" {
-  template = file("${path.module}/../ansible/userdata.yml")
+  template = file("${path.module}/../ansible/user_data.yml")
 }
 
 provider "aws" {
   region = "eu-west-2"
+}
+
+resource "aws_iam_role" "ec2_s3_role"{
+  name = "ec2-s3-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "s3_full_access" {
+  role       = aws_iam_role.ec2_s3_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+
+resource "aws_iam_instance_profile" "ec2_s3_instance_profile" {
+  name = "ec2-s3-instance-profile"
+  role = aws_iam_role.ec2_s3_role.name
 }
 
 # CREATE SECURITY GROUP THAT IS APPLIED TO THE INSTANCE
@@ -108,6 +133,8 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
   key_name      = aws_key_pair.generated_key.key_name
   user_data = data.template_file.userdata.rendered
+  iam_instance_profile = aws_iam_instance_profile.ec2_s3_instance_profile.name
+
   tags = {
     Name = "TerraformAnsibleEC2"
   }
@@ -118,6 +145,25 @@ resource "aws_instance" "web" {
     timeout = "2m"
     agent = false
   }
+}
+
+resource "aws_s3_bucket" "deploy_bucket" {
+  bucket = "abz-devops-project-1702"
+  force_destroy = true
+}
+
+resource "aws_s3_object" "app_zip" {
+  bucket = aws_s3_bucket.deploy_bucket.id
+  key    = "app.zip"
+  source = "../packaged/app.zip"
+  etag   = filemd5("../packaged/app.zip")
+}
+
+resource "aws_s3_object" "ansible_zip" {
+  bucket = aws_s3_bucket.deploy_bucket.id
+  key    = "ansible.zip"
+  source = "../packaged/ansible.zip"
+  etag   = filemd5("../packaged/ansible.zip")
 }
 
 output "private_key_pem" {

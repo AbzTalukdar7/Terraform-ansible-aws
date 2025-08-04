@@ -1,0 +1,18 @@
+#cloud-config
+
+apt_upgrade: false
+packages:
+  - unzip
+  - ansible
+  - git
+  - python3
+  - python3-pip
+  - awscli
+
+runcmd:
+  - aws s3 cp s3://abz-devops-project-1702/app.zip /tmp/visitor_counter_app.zip --region eu-west-2
+  - aws s3 cp s3://abz-devops-project-1702/ansible.zip /tmp/ansible.zip --region eu-west-2
+  - unzip /tmp/visitor_counter_app.zip -d /opt/app
+  - unzip /tmp/ansible.zip -d /opt/ansible
+  - cd /opt/ansible/ansible
+  - ansible-playbook playbook.yml -i localhost, --connection=local 

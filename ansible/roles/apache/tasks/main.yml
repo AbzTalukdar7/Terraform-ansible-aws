@@ -1,5 +1,5 @@
 
-- name: Ensure Apache is installed
+- name: Install Apache
   apt:
     name: apache2
     state: present
@@ -16,9 +16,8 @@
 - name: Deploy updated Apache default site config
   template:
     src: 000-default.conf.j2
-    dest: /etc/apache2/sites-available/000-default.conf
-  notify:
-    - Reload Apache
+    dest: "{{ apache_conf_path }}"
+  notify: Reload Apache
 
 - name: Ensure Apache is running
   service:
