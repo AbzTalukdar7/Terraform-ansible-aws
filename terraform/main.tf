@@ -25,9 +25,9 @@ provider "aws" {
   region = "eu-west-2"
 }
 
-resource "aws_iam_role" "ec2_s3_role"{
-  name = "ec2-s3-role"
-
+# create IAM role for s3
+resource "aws_iam_role" "ec2_s3_role" {
+  name = "ec2-s3-access-role"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -40,13 +40,48 @@ resource "aws_iam_role" "ec2_s3_role"{
   })
 }
 
-resource "aws_iam_role_policy_attachment" "s3_full_access" {
-  role       = aws_iam_role.ec2_s3_role.name
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+#IAM policy to allow s3 access
+resource "aws_iam_policy" "s3_read_policy" {
+  name        = "ec2-access-policy" 
+  description = "Allow EC2 to access S3 and CloudWatch"
+  policy      = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:ListBucket"
+        ]
+        Resource = [
+          "arn:aws:s3:::abz-devops-project-1702",
+          "arn:aws:s3:::abz-devops-project-1702/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:PutLogEvents",
+          "logs:CreateLogStream",
+          "logs:CreateLogGroup",
+          "logs:DescribeLogStreams",
+          "logs:DescribeLogGroups",
+          "cloudwatch:PutMetricData"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
 }
 
-resource "aws_iam_instance_profile" "ec2_s3_instance_profile" {
-  name = "ec2-s3-instance-profile"
+#Attach policy to role
+resource "aws_iam_role_policy_attachment" "s3_read_attachment" {
+  role      = aws_iam_role.ec2_s3_role.name
+  policy_arn = aws_iam_policy.s3_read_policy.arn
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2-instance-profile"
   role = aws_iam_role.ec2_s3_role.name
 }
 
@@ -133,7 +168,7 @@ resource "aws_instance" "web" {
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
   key_name      = aws_key_pair.generated_key.key_name
   user_data = data.template_file.userdata.rendered
-  iam_instance_profile = aws_iam_instance_profile.ec2_s3_instance_profile.name
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
 
   tags = {
     Name = "TerraformAnsibleEC2"
